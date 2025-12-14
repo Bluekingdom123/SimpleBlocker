@@ -7,10 +7,10 @@ import ctypes
 import os
 import shutil
 
-# ------------------------------------------
+
 # settings
-# ------------------------------------------
-BLOCKED_APPS = {"chrome.exe"} 
+
+BLOCKED_APPS = {""} 
 DRY_RUN = True
 CHECK_INTERVAL = 2  # seconds
 
@@ -19,9 +19,25 @@ RUNNING = False
 HOSTS_PATH = r"C:\Windows\System32\drivers\etc\hosts"
 BACKUP_PATH = r"C:\Windows\System32\drivers\etc\hosts.backup"
 
-# ------------------------------------------
+
+# A list of common applications to remove
+
+COMMON_APPS = [
+    "chrome.exe",
+    "msedge.exe",
+    "firefox.exe",
+    "discord.exe",
+    "spotify.exe",
+    "steam.exe",
+    "epicgameslauncher.exe",
+    "valorant.exe",
+    "leagueclient.exe",
+    "riotclientservices.exe"
+]
+
+
 # admin check thing
-# ------------------------------------------
+
 
 
 def is_admin():
@@ -30,9 +46,8 @@ def is_admin():
     except:
         return False
 
-# ------------------------------------------
+
 # monitoring thread
-# ------------------------------------------
 
 
 def monitor_processes():
@@ -58,11 +73,8 @@ def monitor_processes():
 
         time.sleep(CHECK_INTERVAL)
 
-# ------------------------------------------
+
 # GUI functions
-# ------------------------------------------
-
-
 def start_monitoring():
     global RUNNING
     if RUNNING:
@@ -83,11 +95,23 @@ def stop_monitoring():
 
 def add_blocked_app():
     app = simpledialog.askstring(
-        "Add Blocked App", "Enter app name (example: chrome.exe):"
+        "Add Blocked App", "Enter app name (example: chrome.exe, robloxplayerbeta.exe):"
     )
     if app:
         BLOCKED_APPS.add(app.lower())
         blocked_list_var.set("\n".join(BLOCKED_APPS))
+
+def remove_app():
+    app = simpledialog.askstring(
+        "Remove App", "Enter app name to remove (example: chrome.exe, robloxplayerbeta.exe):"
+    )
+    if app:
+        app = app.lower()
+        if app in BLOCKED_APPS:
+            BLOCKED_APPS.remove(app)
+            blocked_list_var.set("\n".join(BLOCKED_APPS))
+        else:
+            messagebox.showinfo("Not Found", f"{app} is not in the block list.")
 
 
 def toggle_dry_run():
@@ -117,16 +141,42 @@ def restore_hosts_file():
 
     messagebox.showinfo("Restored", "Hosts file restored to default.")
 
+def show_common_apps():
+    window = tk.Toplevel(root)
+    window.title("Common Applications")
+    window.geometry("250x300")
 
-# ------------------------------------------
+    label = tk.Label(window, text="Select an app to block:")
+    label.pack(pady=5)
+
+    listbox = tk.Listbox(window)
+    for app in COMMON_APPS:
+        listbox.insert(tk.END, app)
+    listbox.pack(fill="both", expand=True, padx=10, pady=5)
+
+    def add_selected():
+        selection = listbox.curselection()
+        if selection:
+            app = listbox.get(selection[0])
+            BLOCKED_APPS.add(app)
+            blocked_list_var.set("\n".join(BLOCKED_APPS))
+            window.destroy()
+
+    add_button = tk.Button(window, text="Add Selected App", command=add_selected)
+    add_button.pack(pady=5)
+
+
 # GUI setup
-# ------------------------------------------
+
 root = tk.Tk()
 root.title("Simple Focus Blocker")
-root.geometry("350x420")
+root.geometry("420x520")
 
 title_label = tk.Label(root, text="Simple App Blocker", font=("Arial", 16))
 title_label.pack(pady=10)
+
+controls_frame = tk.Frame(root)
+controls_frame.pack(pady=10)
 
 # Dry run indicator
 dry_run_var = tk.StringVar()
@@ -155,6 +205,17 @@ add_button = tk.Button(
     root, text="Add Blocked App", command=add_blocked_app
 )
 add_button.pack(pady=5)
+
+remove_button = tk.Button(root, text="Remove App", command=remove_app)
+remove_button.pack(pady=5)
+
+common_button = tk.Button(
+    root,
+    text="📋 Common Apps",
+    command=show_common_apps
+)
+common_button.pack(pady=5)
+
 
 # Start / Stop
 start_button = tk.Button(
