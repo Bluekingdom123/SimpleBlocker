@@ -188,7 +188,7 @@ dry_run_label.pack()
 toggle_button = tk.Button(root, text="Toggle Dry Run", command=toggle_dry_run)
 toggle_button.pack(pady=5)
 
-# this list blocks stuff
+# The block list
 blocked_list_var = tk.StringVar()
 blocked_list_var.set("\n".join(BLOCKED_APPS))
 
